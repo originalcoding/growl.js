@@ -114,7 +114,7 @@ var Growl = window.Growl = {
      * @this {Growl}
      * @return Result of 'add' function
      */
-    addNotification: function (notificationText, notificationSettings) {
+    addNotification: function (notification, notificationSettings) {
         var notificationSettings = notificationSettings || {};
         var notificationType = notificationSettings.type;
         var typeSettings = this.settings.types[notificationType];
@@ -128,7 +128,7 @@ var Growl = window.Growl = {
             sticky = getSetting('sticky', this, mergedSettings),
             closeable = getSetting('closeable', this, mergedSettings);
         
-        var notificationSelector = add(selector, notificationText, notificationType, closeable, mergedSettings);
+        var notificationSelector = add(selector, notification, notificationType, closeable, mergedSettings);
         
         if (sticky !== true) {
             var that = this;
@@ -153,7 +153,7 @@ var Growl = window.Growl = {
     },
     
     /**
-     * Add new message type or modifies its settings. If 'bind' setting is true,
+     * Adds new message type or modifies its settings. If 'bind' setting is true,
      * binds return value to Growl object.
      * @param {String} type Type name
      * @param {Object} typeSettings Settings for type
