@@ -14,7 +14,7 @@
     $.fn.growl = function (settings) {
         var growlSettings = Growl.settings || {};
         var settings = (settings) ?
-            mergeObjects(growlSettings, settings) : settings;
+            mergeObjects(growlSettings, settings) : settings || {};
         
         // selector will be object we called this method on
         var selector = $(this);
