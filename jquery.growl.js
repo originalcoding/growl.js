@@ -7,32 +7,24 @@
 
 (function ($) {
     /**
-      * Makes setup for global Growl object.
+      * Growl.
       * @param {Object} settings Settings for Growl
       * @return {jQuery} Object we called this method on
       */
     $.fn.growl = function (settings) {
-        var growlSettings = Growl.settings || {};
-        var settings = (settings) ?
-            mergeObjects(growlSettings, settings) : settings || {};
+        var settings = settings || {},
+            element = $(this);
         
-        // selector will be object we called this method on
-        var selector = $(this);
+        settings.element = element;
+        var growl = new Growl(settings);
         
-        settings.selector = selector;
+        if (!$.g) {
+            $.g = growl;
+        }
         
-        // reinitialize Growl
-        Growl.init(settings);
-    
-        return selector;
+        $.growl = growl;
+        
+        return element;
     };
-    
-    // shortcut
-    if (!$.g) {
-        $.g = Growl;
-    };
-    
-    // regular name
-    $.growl = Growl;
-    
+
 })(jQuery);

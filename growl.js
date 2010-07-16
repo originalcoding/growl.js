@@ -1,197 +1,164 @@
 /**
- * @preserve License: BSD, see http://github.com/Kapishin/growl.js/blob/master/LICENSE
- * @description Glue code to provide Growl-like notifications.
+ * @preserve Glue code to provide Growl-like notifications.
  * @author Pavlo Kapyshin (i@93z.org, admin@93z.org)
  * @copyright Original Coding (http://originalcoding.com/)
- * @version 0.1
+ * @version 0.2
+ * License: BSD, see http://github.com/Kapishin/growl.js/blob/master/LICENSE
  */
-
-
-var hasOwnProperty = function(obj, prop) {
-    if (Object.prototype.hasOwnProperty) {
-        return obj.hasOwnProperty(prop);
-    };
-    
-    return typeof obj[prop] != 'undefined' && 
-        obj.constructor.prototype[prop] !== obj[prop];
-};
-
-
-var mergeObjects = function () {
-    var mergedObject = {};
-    
-    for (var i = 0, length = arguments.length; i < length; i++) {
-        var object = arguments[i];
-        
-        for (var prop in object) {
-            if (hasOwnProperty(object, prop)) {
-                mergedObject[prop] = object[prop];
-            };
-        };
-    };
-    
-    return mergedObject;
-};
 
 
 /**
- * Gets setting by name with respect to settings inheritance.
- * @param {String} name Name of setting
- * @param {Growl} growl Growl object
- * @param {Object} notificationSettings Settings for notification
+ * Growl class.
+ * @constructor
+ * @param {Object} settings Growl settings
  */
-var getSetting = function (name, growl, notificationSettings) {
-    if (notificationSettings && typeof notificationSettings[name] !== 'undefined') {
-        return notificationSettings[name];
-    } else if (notificationSettings.type &&
-               typeof growl.settings.types[notificationSettings.type] !== 'undefined' &&
-               typeof growl.settings.types[notificationSettings.type][name] !== 'undefined') {
-        return growl.settings.types[notificationSettings.type][name];
-    } else if (typeof growl.settings[name] !== 'undefined') {
-        return growl.settings[name];
-    };
-};
-
-
-/**
- * Global Growl object.
- */
-var Growl = window.Growl = {
+var Growl = window.Growl = function (settings) {
     /**
-     * Performs initialization (can be omitted)
-     * @param {Object} settings Global growl settings
-     * @this {Growl}
-     * @return settings.selector (if provided)
+     * Settings that Growl makes use of:
+     *     element Growl element.
+     *     types {Object} Object that holds settings for notification types.
+     *                    Example:
+     *                        {
+     *                            error: {
+     *                                sticky: true
+     *                            },
+     *                            
+     *                            success: {
+     *                                sticky: false,
+     *                                timeout: 5000
+     *                            }
+     *                        }
+     *     bind {Boolean} Should Growl bind methods for types (for example, Growl.success)?
+     *     add {Function} Function responsible for adding message to the Growl element.
+     *                    Example:
+     *                        function (growlElement, notification, settings) {
+     *                            // Formatting notification according to settings,
+     *                            // adding notification element to growlElement
+     *                            // and assigning it to variable named notificationElement.
+     *                            return notificationElement;
+     *                        };
+     *     remove {Function} Function responsible for removing message element from Growl element.
+     *                       Example:
+     *                           function (growlElement, notificationElement, settings) {
+     *                               // Removing notificationElement which is a value returned
+     *                               // by 'add' function.
+     *                           }
+     *     timeout {Number} Timeout for notifications in milliseconds.
+     *     sticky {Boolean} Are notifications sticky?
+     *     
+     *     You can provide your own settings.
      */
-    init: function (settings) {
-        /**
-         * Settings (Object):
-         *     selector Selector for Growl element.
-         *     types {Object} Object that holds settings for notification types.
-         *     bind {Boolean} Should Growl bind 'add' and 'remove' methods + methods for types?
-         *     add {Function} Function responsible for adding message to the Growl element.
-         *     remove {Function} Function responsible for removing message element from Growl element.
-         *     timeout {Number} Timeout for notifications in milliseconds.
-         *     closeable {Boolean} Should Growl allow user to close notification?
-         *                         This setting is just passed to 'add' and 'remove' functions.
-         *     sticky {Boolean} Are notifications sticky?
-         */
-        this.settings = settings || {};
-        var types = this.settings.types = settings.types || {};
+    var settings = settings || {};
+    
+    var types = settings.types = settings.types || {};
+    var bind = settings.bind = ('bind' in settings) ? settings.bind : true;
+    
+    this.settings = settings;
+    
+    
+    var mergeSettings = function () {
+        var mergedObject = {};
         
-        // bind methods by default
-        var bind = this.settings.bind = (typeof settings.bind === 'undefined' ||
-                                         settings.bind === true);
-        
-        if (settings) {
-            if (bind) {
-                if (settings.add) {
-                    this.add = settings.add;
-                };
-                
-                if (settings.remove) {
-                    this.remove = settings.remove
-                };
-                
-                // bind methods for types
-                if (types) {
-                    for (var type in types) {
-                        if (hasOwnProperty(types, type)) {
-                            this.addType(type, types[type]);
-                        };
-                    };
-                };
-            };
+        for (var i = 0, length = arguments.length; i < length; i++) {
+            var object = arguments[i];
             
-            return settings.selector;
-        }
-    },
-    
-    /**
-     * Adds notification (message).
-     * @param {String} notificationText Text of notification
-     * @param {Object} notificationSettings Settings for notification
-     * @this {Growl}
-     * @return Result of 'add' function
-     */
-    addNotification: function (notification, notificationSettings) {
-        var notificationSettings = notificationSettings || {};
-        var notificationType = notificationSettings.type;
-        var typeSettings = this.settings.types[notificationType];
-        
-        var mergedSettings = (typeSettings) ?
-            mergeObjects(notificationSettings, typeSettings) : notificationSettings;
-        
-        var timeout = getSetting('timeout', this, mergedSettings),
-            add = getSetting('add', this, mergedSettings),
-            selector = getSetting('selector', this, mergedSettings),
-            sticky = getSetting('sticky', this, mergedSettings),
-            closeable = getSetting('closeable', this, mergedSettings);
-        
-        var notificationSelector = add(selector, notification, notificationType, closeable, mergedSettings);
-        
-        if (sticky !== true) {
-            var that = this;
-            try {
-                setTimeout(function () {
-                    that._removeNotification(selector, notificationSelector, notificationType, closeable, mergedSettings);
-                }, timeout);
-            } catch (e) {
-                throw new Error('Missing \'remove\' setting.');
+            for (var prop in object) {
+                if (hasOwnProperty(object, prop)) {
+                    mergedObject[prop] = object[prop];
+                };
             };
         };
         
-        return notificationSelector;
-    },
+        delete mergedObject.types;
+        return mergedObject;
+    };
     
-    /**
-     * @ignore
-     */
-    _removeNotification: function (growlSelector, notificationSelector, type, closeable, notificationSettings) {
-        var remove = getSetting('remove', this, notificationSettings);
-        remove(growlSelector, notificationSelector, type, closeable, notificationSettings);
-    },
     
-    /**
-     * Adds new message type or modifies its settings. If 'bind' setting is true,
-     * binds return value to Growl object.
-     * @param {String} type Type name
-     * @param {Object} typeSettings Settings for type
+    var hasOwnProperty = function(obj, prop) {
+        if (Object.prototype.hasOwnProperty) {
+            return obj.hasOwnProperty(prop);
+        };
+        
+        return typeof obj[prop] != 'undefined' && 
+               obj.constructor.prototype[prop] !== obj[prop];
+    };
+    
+    
+    /** Adds notification.
      * @this {Growl}
+     * @param notification Notification (can be anything)
+     * @param {Object} notificationSettings Settings for notification
+     * @return Result of 'add' function defined in settings
+     */
+    this.addNotification = function (notification, notificationSettings) {
+        var notificationSettings = notificationSettings || {};
+        
+        var notificationType = notificationSettings.type;
+        var typeSettings = this.settings.types[notificationType] || {};
+        
+        var settings = mergeSettings(this.settings, typeSettings, notificationSettings);
+        
+        var growlElement = settings.element;
+        var notificationElement = settings.add(growlElement, notification, settings);
+        
+        if (settings.sticky !== true) {
+            var remove = function () {
+                settings.remove(growlElement, notificationElement, settings);
+            };
+            setTimeout(remove, settings.timeout);
+        };
+        
+        return notificationElement;
+    };
+    
+    
+    /**
+     * Adds new message type and modifies its settings. If 'bind' setting is true,
+     * binds return value to Growl object (for example, Growl.warning).
+     * @this {Growl}
+     * @param {String} typeName Type's name
+     * @param {Object} typeSettings Settings for type
      * @return {Function} Function that adds notifications for defined type.
      */
-    addType: function (type, typeSettings) {
-        // merge old type's settings and the new ones
+    this.addType = function (typeName, typeSettings) {
         var types = this.settings.types;
         var typeSettings = typeSettings || {};
-        var existingTypeSettings = types[type] || {};
+        var existingTypeSettings = types[typeName] || {};
         
-        types[type] = mergeObjects(existingTypeSettings, typeSettings);
-        
+        // merge old type's settings and the new ones
+        types[typeName] = mergeSettings(existingTypeSettings, typeSettings);
         
         var that = this;
-        
-        var typeMethod = function (notificationText, notificationSettings) {
-            var mergedSettings = mergeObjects(notificationSettings, typeSettings);
-            mergedSettings.type = type;
-            return that.addNotification(notificationText, mergedSettings);
+        var typeMethod = function (notification, notificationSettings) {
+            var notificationSettings = notificationSettings || {};
+            notificationSettings.type = typeName;
+            return that.addNotification(notification, notificationSettings);
         };
         
-        // bind type's method only if allowed
         if (this.settings.bind) {
-            this[type] = typeMethod;
+            this[typeName] = typeMethod;
         };
         
         return typeMethod;
-    },
+    };
+    
     
     /**
      * Removes type by name.
      * @this {Growl}
-     * @param {String} type Type's name
+     * @param {String} typeName Type's name
      */
-    removeType: function (type) {
-        delete this[type];
-        delete this.settings.types[type];
-    }
+    this.removeType = function (typeName) {
+        delete this[typeName];
+        delete this.settings.types[typeName];
+    };
+    
+    
+    if (bind) {
+        for (var type in types) {
+            if (hasOwnProperty(types, type)) {
+                this.addType(type, types[type]);
+            };
+        };
+    };
 };
