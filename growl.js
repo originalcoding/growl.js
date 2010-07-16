@@ -1,8 +1,8 @@
 /**
- * @preserve Glue code to provide Growl-like notifications.
+ * Glue code to provide Growl-like notifications.
  * @author Pavlo Kapyshin (i@93z.org, admin@93z.org)
  * @copyright Original Coding (http://originalcoding.com/)
- * @version 0.2
+ * @version 0.2.1
  * License: BSD, see http://github.com/Kapishin/growl.js/blob/master/LICENSE
  */
 
@@ -56,6 +56,15 @@ var Growl = window.Growl = function (settings) {
     this.settings = settings;
     
     
+    var hasOwnProperty = function(obj, prop) {
+        if (Object.prototype.hasOwnProperty) {
+            return obj.hasOwnProperty(prop);
+        };
+        
+        return typeof obj[prop] != 'undefined' && 
+               obj.constructor.prototype[prop] !== obj[prop];
+    };
+    
     var mergeSettings = function () {
         var mergedObject = {};
         
@@ -71,16 +80,6 @@ var Growl = window.Growl = function (settings) {
         
         delete mergedObject.types;
         return mergedObject;
-    };
-    
-    
-    var hasOwnProperty = function(obj, prop) {
-        if (Object.prototype.hasOwnProperty) {
-            return obj.hasOwnProperty(prop);
-        };
-        
-        return typeof obj[prop] != 'undefined' && 
-               obj.constructor.prototype[prop] !== obj[prop];
     };
     
     
