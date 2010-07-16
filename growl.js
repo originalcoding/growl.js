@@ -45,8 +45,8 @@ var Growl = window.Growl = function (settings) {
      *                           }
      *     timeout {Number} Timeout for notifications in milliseconds.
      *     sticky {Boolean} Are notifications sticky?
-     *     
-     *     You can provide your own settings.
+     * 
+     * You can provide your own settings.
      */
     var settings = settings || {};
     
@@ -84,7 +84,8 @@ var Growl = window.Growl = function (settings) {
     };
     
     
-    /** Adds notification.
+    /**
+     * Adds notification.
      * @this {Growl}
      * @param notification Notification (can be anything)
      * @param {Object} notificationSettings Settings for notification
