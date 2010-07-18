@@ -2,7 +2,7 @@
  * Glue code to provide Growl-like notifications.
  * @author Pavlo Kapyshin (i@93z.org, admin@93z.org)
  * @copyright Original Coding (http://originalcoding.com/)
- * @version 0.2.1
+ * @version 0.2.2
  * License: BSD, see http://github.com/Kapishin/growl.js/blob/master/LICENSE
  */
 
@@ -12,7 +12,7 @@
  * @constructor
  * @param {Object} settings Growl settings
  */
-var Growl = window.Growl = function (settings) {
+Growl = function (settings) {
     /**
      * Settings that Growl makes use of:
      *     element Growl element.
@@ -122,11 +122,9 @@ var Growl = window.Growl = function (settings) {
      */
     this.addType = function (typeName, typeSettings) {
         var types = this.settings.types;
-        var typeSettings = typeSettings || {};
-        var existingTypeSettings = types[typeName] || {};
         
         // merge old type's settings and the new ones
-        types[typeName] = mergeSettings(existingTypeSettings, typeSettings);
+        types[typeName] = mergeSettings(types[typeName] || {}, typeSettings || {});
         
         var that = this;
         var typeMethod = function (notification, notificationSettings) {
