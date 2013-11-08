@@ -160,3 +160,4 @@ Growl = function (settings) {
         };
     };
 };
+
