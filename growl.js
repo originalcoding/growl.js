@@ -3,7 +3,7 @@
  * @author Pavlo Kapyshin (i@93z.org)
  * @copyright Original Coding (http://originalcoding.com/)
  * @version 0.2.2
- * License: BSD, see http://github.com/Kapishin/growl.js/blob/master/LICENSE
+ * License: BSD, see http://github.com/originalcoding/growl.js/blob/master/LICENSE
  */
 
 
